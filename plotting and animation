@@ -1,0 +1,37 @@
+library(dplyr)
+library(lubridate)
+library(ggpubr)
+library(ggsci)
+library(gganimate)
+
+HF_Cr = read.csv("KS_full.csv")
+HF_Cr = HF_Cr[, 1:6]
+
+HF_Cr = filter(HF_Cr, Parameter == "HF183" | Parameter == "PMMoV" | Parameter == "CrAssphage" | Parameter == "Enterococci")
+
+HF_Cr$Date = mdy(as.character(HF_Cr$Date))
+HF_Cr$Site = factor(HF_Cr$Site, labels = c('Site 1: BMP', "Site 2: Adjacent Stream", "Site 3: Downstream Confluence"))
+HF_Cr$Parameter = factor(HF_Cr$Parameter, levels = c('CrAssphage', 'PMMoV', "HF183", "Enterococci", "P. aeruginosa", 'EHEC', 'Adenovirus spp.'))
+HF_Cr$Detection = factor(HF_Cr$Detection, labels = c("<LOD", ">LOD"))
+
+site1 <- filter(HF_Cr, Site == "Site 1: BMP")
+
+t1 <-  ggplot(site1, aes(Date, Concentration, color = Parameter, size = Concentration))+
+  geom_point(alpha = 0.5)+
+  theme(plot.title = element_text(size = 16), axis.text = element_text(size = 14),
+        axis.title = element_text(size = 15),  legend.text = element_text(size = 13), 
+        legend.title = element_text(size = 14))+
+  #theme_bw()+
+  guides(size = FALSE)+
+  scale_size(range = c(2,20))+
+  labs(title = "Sewage Spill: Human-Associated Markers 10/4-11/13" , subtitle = 'Date: {frame_time}'  , x = "", 
+       y = expression(paste(Log[10], ' ', 'Concentration', " ", 100, mL^-1)))+
+  scale_color_jama() +
+  transition_time(Date)+
+  ease_aes('linear')
+                    
+                    
+t1
+
+
+anim_save('spill_anim2.gif')
